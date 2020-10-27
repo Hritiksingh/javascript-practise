@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <strong><h1>Bouncing Ball Game!</h1></strong>
+    <canvas id="canvas" height="500" width="500"></canvas>
+    <script src="jquery-3.5.1.js"></script>
+    <script>
+        var canvas  = document.getElementById("canvas");
+        var brush = canvas.getContext("2d");
+
+        brush.strokeRect(10,10,400,400);
+        //brush.lineWidth = 4;
+
+        //----------radom speed for particals;
+        var randomSpeed = function(){
+            return Math.floor(Math.random()*10-5);
+        };
+
+        //--------random origin of balls--------
+        var randomCoordinate = function(){
+            return Math.floor(Math.random()*360+30);
+        };
+
+        //---------Ball Class------------------
+        var Ball = function(){
+            this.x = randomCoordinate();
+            this.y = randomCoordinate();
+            this.color = colorPicker();
+            this.xSpeed = randomSpeed();
+            this.ySpeed = randomSpeed();
+        };
+
+        // -----------random color for ball-------------
+        var colorPicker = function(){
+            var colors = ["red","blue","skyblue","pink","green","yellow","purple","black"];
+            return colors[Math.floor(Math.random()*colors.length)];
+        };
+
+        //brush.fillStyle = colorPicker();
+
+
+        //----------------creating a ball--------------
+        var circle = function(x,y,radius,fillCircle){
+            brush.beginPath();
+            brush.arc(x,y,radius,0,Math.PI*2,false);
+            if(fillCircle){
+                brush.fill();
+            }else{
+                brush.stroke();
+            }
+        };
+
+                
+        //----------drawing ball on the actual canvas------------
+        Ball.prototype.draw = function(){
+            circle(this.x,this.y,10,true);
+        };
+
+        //----------moving ball on the actual canvas------------
+        Ball.prototype.move = function(){
+            this.x += this.xSpeed;
+            this.y += this.ySpeed;
+        };
+
+        //-------ball with in the boundaries------
+        Ball.prototype.checkCollision = function(){
+            if(this.x<25 || this.x>395){
+                this.xSpeed = -this.xSpeed;    
+            }
+            if(this.y<25 || this.y>395){
+                this.ySpeed = -this.ySpeed;    
+            }
+        };
+
+        //---------------array of balls-------------
+        var balls  = [];
+        for(var i=1;i<=100;++i){
+            var ball = new Ball();
+            balls.push(ball);
+        }
+
+        //---------making animation  ---------------
+        setInterval(function(){
+            brush.clearRect(10,10,400,400);
+            for(var i=0;i<=balls.length;++i){
+                //brush.fillStyle = colorPicker();  //------will give DJ Effects------------
+                brush.fillStyle = balls[i].color;
+                balls[i].draw();
+                balls[i].move();
+                balls[i].checkCollision();
+            }
+            //ball.draw();
+            //ball.move();
+            //ball.checkCollision();
+        },30);
+
+        
+
+        /*
+        var bounce = function(){
+            brush.clearRect(10,10,400,400);
+            ball.draw();
+            ball.move();
+            ball.checkCollision();
+        };
+
+        setInterval(bounce(),30);
+        */
+
+       
+        
+        
+    </script>
+    
+</body>
+</html>
