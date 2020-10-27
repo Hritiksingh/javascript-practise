@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <canvas id="canvas" height="500" width="500"></canvas>
+    <script src="jquery-3.5.1.js"></script>
+    <script>
+        var canvas = document.getElementById("canvas");
+        var brush = canvas.getContext("2d");
+        brush.lineWidth=3;
+        brush.strokeRect(0,0,500,500);
+
+        var height = canvas.height;
+        var width = canvas.width;
+
+
+        var circle = function(x,y,radius,fillCircle){
+            brush.beginPath();
+            brush.arc(x,y,radius,0,Math.PI*2,false);
+            if(fillCircle){
+                brush.fill();
+            }
+            else{
+                brush.stroke();
+            }
+        };
+
+        var Ball  = function(){
+            this.x = width/2;
+            this.y = height/2;
+            this.xSpeed = 5;
+            this.ySpeed = 0;
+        };
+
+        
+        Ball.prototype.move = function(){
+            this.x += this.xSpeed;
+            this.y += this.ySpeed;
+
+            if (this.x < 0) {
+                this.x = width;
+                } else if (this.x > width) {
+                this.x = 0;
+                } else if (this.y < 0) {
+                this.y = height;
+                } else if (this.y > height) {
+                this.y = 0;
+                }
+                
+        };
+
+        Ball.prototype.draw = function(){
+            circle(this.x,this.y,10,true);
+        };
+
+        Ball.prototype.setDirection = function(direction){
+            if (direction === "up") {
+                this.xSpeed = 0;
+                this.ySpeed = -5;
+                } else if (direction === "down") {
+                this.xSpeed = 0;
+                this.ySpeed = 5;
+                } else if (direction === "left") {
+                this.xSpeed = -5;
+                this.ySpeed = 0;
+                } else if (direction === "right") {
+                this.xSpeed = 5;
+                this.ySpeed = 0;
+                } else if (direction === "stop") {
+                this.xSpeed = 0;
+                this.ySpeed = 0;
+                }           
+        };
+
+
+        Ball.prototype.checkBound = function(){
+            if(this.x < 10 || this.x>490){
+                this.xSpeed = -this.xSpeed;
+            }
+            if(this.y < 10 || this.y>490){
+                this.ySpeed = -this.ySpeed;
+            }
+
+        };
+
+        var ball = new Ball();
+
+        var keyActions = {
+            32: "stop",
+            37: "left",
+            38: "up",
+            39: "right",
+            40: "down"
+
+        };
+
+        $("body").keydown(function(event){
+            var direction = keyActions[event.keyCode];
+            ball.setDirection(direction);
+        });
+
+
+
+        setInterval(function(){
+            brush.clearRect(5,5,width-10,height-10);
+            ball.draw();
+            ball.move();
+            ball.checkBound();
+        },30 );
+
+
+
+
+    </script>
+</body>
+</html>
