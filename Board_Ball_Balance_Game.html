@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balance Ball Game!</title>
+</head>
+<body>
+    <strong><h1>Do not let the ball  hit the floor.</h1></strong>
+    <canvas id="canvas" height="500" width="500"></canvas>
+    <script src="jquery-3.5.1.js"></script>
+    <script>
+        var canvas = document.getElementById("canvas");
+        var brush = canvas.getContext("2d");
+        
+        var height = canvas.height;
+        var width = canvas.width;
+
+
+        //-------making a playable boundary---------------
+        var makeBoundaries = function(){
+            brush.fillStyle = "grey";
+            brush.fillRect(10,10,width,10);
+            brush.fillRect(10,10,10,height);
+            //brush.fillStyle = "black";
+            brush.fillRect(width-10,10,10,height);
+            brush.fillRect(10,height-10,width,10);
+        };
+
+        var score = 0; // score for the player.
+
+
+        //---------Score element on the page-------------------
+        var Score = function(){
+            brush.textBaseline = "top";
+            brush.textAlign = "left";
+            brush.fillStyle = "black";
+            brush.font = "20px Comic Sans MS";
+            brush.fillText("SCORE: "+score,10*2,10*3);
+            
+        };
+
+        //---------game over--------------------
+        var gameOver = function(){
+            clearInterval(intervalId);
+            brush.font = "60px Comic Sans MS";
+            brush.fillStyle="red";
+            brush.textAlign="center";
+            brush.textBaseline="middle";
+            brush.fillText("Game Over",width /2, height / 2);
+        };
+
+
+        //---------ball body------------------
+        var circle = function(x,y,radius,fillCircle){
+            brush.beginPath();
+            brush.fillStyle="red";
+            brush.arc(x,y,radius,0,Math.PI*2,false);
+            if(fillCircle){
+                brush.fill();
+                brush.stroke();
+            }
+            else{
+                brush.stroke();
+            }
+        };
+
+
+        var randomCoordinates = function(){
+            return (Math.floor(Math.random()*350+50));
+        };
+
+        //---------Ball Constructor---------------
+        var Ball = function(){
+            this.x = randomCoordinates();
+            this.y = randomCoordinates();
+            this.xSpeed = -3;
+            this.ySpeed = 5;
+        };
+
+
+        //--------draw method----------------
+        Ball.prototype.draw = function(){
+            circle(this.x,this.y,10,true);
+        };
+
+        //-------move method-----------
+        Ball.prototype.move = function(){
+            this.x += this.xSpeed;
+            this.y += this.ySpeed;            
+        };
+
+        //------cheking boundary collision for ball----------
+        Ball.prototype.checkBound = function(){
+            if(this.x < 30 || this.x>480){
+                this.xSpeed = -this.xSpeed;
+            }
+            if(this.y < 30 || this.y > 480){
+                this.ySpeed = -this.ySpeed;
+            }
+        };
+        
+
+        //----board body-------
+        var rectangle = function(x,y,len,solidFill){
+            if(solidFill){
+                brush.fillStyle = "brown";
+                brush.fillRect(x,y,len,10);
+            }
+            else {
+                brush.strokeStyle = "brown";
+                brush.strokeRect(x,y,len,10);
+            }
+        };
+
+
+        //-------constructor for board---------------
+        var Board = function(){
+            this.x_axis = width / 2;
+            this.y_axis = height - 30;
+            this.len = 70;
+            this.speed = 20;
+        };
+
+        //-------draw method for board--------
+        Board.prototype.draw = function(){
+            rectangle(this.x_axis,this.y_axis,this.len,true);
+        };     
+
+        
+
+
+       
+
+        var ball = new Ball();//-------ball object------------
+        var board  = new Board();//--------board object-------
+
+        //---------moving board right and left functionalities---------------
+        Board.prototype.hover = function(direction){
+            //console.log(direction);
+            if(direction === "left" && !(this.x_axis < 20) ){
+                this.x_axis -= this.speed;
+            }else if(direction === "right" && !( this.x_axis > width - this.len - 10) ){
+                this.x_axis += this.speed;
+            }
+        };
+
+        //------check boundary collision for the board----------
+        Board.prototype.checkCollision = function(){
+            if(this.x_axis<30){
+                this.x_axis += this.speed;
+            }
+            if(this.x_axis>width-this.len-20){
+                this.x_axis -= this.speed;
+            }
+        }
+
+
+        //-------------main logic for scoring-----------------------
+
+        Board.prototype.Scorer = function(){
+
+            if(ball.y-5 >= this.y_axis){
+                gameOver();
+            }
+            //console.log(this.x_axis+ " : "+this.y_axis+" : "+ball.x+" : "+ball.y);
+            if( ( ball.x > this.x_axis-5 && ball.x < this.x_axis+this.len+5 ) && (ball.y+6 >= this.y_axis) ){
+                //console.log("Scored!");
+                //------ball bounces back after hitting board--------
+                ball.xSpeed = ball.xSpeed;
+                ball.ySpeed = -ball.ySpeed;
+                
+                score+= 10; //------increasing Score ----------
+
+                // increasing ball speed to make the game difficult for player---------------
+
+                if(ball.xSpeed<0){
+                    ball.xSpeed = ball.xSpeed - 1;
+                } 
+                else if(ball.xSpeed > 0){
+                    ball.xSpeed = ball.xSpeed + 1;
+                }  
+                if(ball.ySpeed<0){
+                    ball.ySpeed = ball.ySpeed - 1;
+                } 
+                else if(ball.ySpeed > 0){
+                    ball.ySpeed = ball.ySpeed + 1;
+                }             
+                
+
+                this.len -= 1;  // shortens the board length to incearse difficulty of the game.      
+            }    
+
+        };
+
+
+
+        //------dictionary for key board key events-------------
+        keyActions = {
+            39:"right",
+            37:"left"
+        };
+
+        //------------key board hit response-------------
+        $("body").keydown(function(event){
+            board.hover(keyActions[event.keyCode]);     
+        });
+
+        var frames = 50;// rate to call the function current @50 ms(miliseconds) ----------
+
+        //-------------Controlling area from where the function called @ frame rate upto gameOver-------------
+        var intervalId = setInterval(function(){
+            brush.clearRect(1,1,500,500);
+            ball.draw();
+            ball.checkBound();
+            board.draw();
+            board.checkCollision();
+            ball.move();
+            board.Scorer();
+            makeBoundaries();
+            Score();
+        },frames);
+        
+        
+        
+
+        
+
+
+
+
+    </script>
+    
+</body>
+</html>
